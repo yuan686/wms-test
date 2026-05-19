@@ -70,10 +70,10 @@ const handleSubmit = async () => {
     } else {
       await createProduct({ name: form.value.name, sku: form.value.sku, unit: form.value.unit })
       ElMessage.success('创建成功')
+      // 新增商品后重置到第一页（新商品会显示在列表中）
+      currentPage.value = 1
     }
     dialogVisible.value = false
-    // ️ BUG: 编辑后不保留当前页码
-    currentPage.value = 1
     await loadProducts()
   } catch (e: any) {
     ElMessage.error(e.response?.data?.message || '操作失败')
