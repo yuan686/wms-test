@@ -2,6 +2,12 @@ spring:
   application:
     name: wms-backend
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+
   # H2 内存数据库（开发环境）
   # datasource:
   #   url: jdbc:h2:mem:wms;DB_CLOSE_DELAY=-1;MODE=MySQL
@@ -31,6 +37,20 @@ spring:
 
 server:
   port: 8080
+
+# 出库申请缓存防护配置
+wms:
+  outbound:
+    cache:
+      stock-base-ttl-seconds: 1800
+      stock-ttl-jitter-seconds: 600
+      null-base-ttl-seconds: 120
+      null-ttl-jitter-seconds: 60
+      meta-base-ttl-seconds: 3600
+      meta-ttl-jitter-seconds: 900
+      lock-wait-millis: 3000
+      lock-lease-seconds: 10
+      lock-poll-millis: 50
 
 # Swagger
 springdoc:

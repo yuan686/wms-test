@@ -5,6 +5,8 @@ import com.wms.common.CursorPageResult;
 import com.wms.dto.InboundOrderCreateRequest;
 import com.wms.dto.InboundOrderResponse;
 import com.wms.dto.InventoryResponse;
+import com.wms.dto.OutboundOrderCreateRequest;
+import com.wms.dto.OutboundOrderResponse;
 import com.wms.service.InventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 库存和入库单 Controller
+ * 库存和出入库单 Controller
  */
 @RestController
 @RequestMapping("/api")
@@ -39,7 +41,18 @@ public class InventoryController {
     }
 
     /**
-     * 混合分页查询库存：cursor 优先（顺序翻页），否则用 page 跳转
+     * 创建出库单
+     */
+    @PostMapping("/outbound-orders")
+    public ResponseEntity<ApiResponse<OutboundOrderResponse>> createOutboundOrder(
+            @Valid @RequestBody OutboundOrderCreateRequest request) {
+        OutboundOrderResponse response = inventoryService.createOutboundOrder(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(201, "出库单创建成功", response));
+    }
+
+    /**
+     * 混合分页查询库存
      */
     @GetMapping("/inventory")
     public ApiResponse<CursorPageResult<InventoryResponse>> queryInventory(

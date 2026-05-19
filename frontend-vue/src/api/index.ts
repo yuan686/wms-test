@@ -122,3 +122,32 @@ export const createInboundOrder = (data: {
   items: InboundItemRequest[]
 }) =>
   api.post<any, { code: number; message: string; data: InboundOrderResponse }>('/inbound-orders', data)
+
+
+// ============ 出库单 ============
+
+export interface OutboundItemRequest {
+  productId: number
+  quantity: number
+  locationCode: string
+}
+
+export interface OutboundOrderResponse {
+  id: number
+  orderNo: string
+  customerName: string
+  status: string
+  items: Array<{
+    productId: number
+    productName: string
+    quantity: number
+    locationCode: string
+  }>
+  createdAt: string
+}
+
+export const createOutboundOrder = (data: {
+  customerName: string
+  items: OutboundItemRequest[]
+}) =>
+  api.post<any, { code: number; message: string; data: OutboundOrderResponse }>('/outbound-orders', data)
