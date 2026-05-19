@@ -1,6 +1,7 @@
 package com.wms.service;
 
 import com.wms.common.BusinessException;
+import com.wms.common.PageResult;
 import com.wms.dto.InboundOrderCreateRequest;
 import com.wms.dto.InboundOrderResponse;
 import com.wms.dto.InventoryResponse;
@@ -53,11 +54,13 @@ public class InventoryService {
     }
 
     /**
-     * 库存查询
+     * 分页查询库存
      */
-    public List<InventoryResponse> queryInventory(String keyword, Long warehouseId,
-                                                   int page, int pageSize) {
-        throw new UnsupportedOperationException("请实现库存查询功能（任务2）");
+    public PageResult<InventoryResponse> queryInventory(String keyword, Long warehouseId,
+                                                        String locationCode, int page, int pageSize) {
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.min(Math.max(pageSize, 1), 100);
+        return inventoryRepository.queryInventory(keyword, warehouseId, locationCode, safePage, safePageSize);
     }
 
     /**

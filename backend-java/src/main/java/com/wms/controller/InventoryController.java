@@ -1,6 +1,7 @@
 package com.wms.controller;
 
 import com.wms.common.ApiResponse;
+import com.wms.common.PageResult;
 import com.wms.dto.InboundOrderCreateRequest;
 import com.wms.dto.InboundOrderResponse;
 import com.wms.dto.InventoryResponse;
@@ -15,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 库存和入库单 Controller
@@ -40,14 +39,15 @@ public class InventoryController {
     }
 
     /**
-     * 查询库存
+     * 分页查询库存
      */
     @GetMapping("/inventory")
-    public ApiResponse<List<InventoryResponse>> queryInventory(
+    public ApiResponse<PageResult<InventoryResponse>> queryInventory(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long warehouseId,
+            @RequestParam(required = false) String locationCode,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        return ApiResponse.success(inventoryService.queryInventory(keyword, warehouseId, page, pageSize));
+        return ApiResponse.success(inventoryService.queryInventory(keyword, warehouseId, locationCode, page, pageSize));
     }
 }

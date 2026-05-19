@@ -64,6 +64,7 @@ export interface InventoryItem {
 export const getInventory = (params: {
   keyword?: string
   warehouseId?: number
+  locationCode?: string
   page?: number
   pageSize?: number
 }) =>
