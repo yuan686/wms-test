@@ -14,6 +14,12 @@ import {
   type Product,
   type Warehouse,
 } from '@/api'
+import {
+  isLocationOptionDisabled,
+  isProductOptionDisabled,
+  isWarehouseOptionDisabled,
+  validateOrderItemDuplicates,
+} from '@/utils/orderItemDimension'
 
 interface OutboundFormItem {
   productId?: number
@@ -140,7 +146,7 @@ const validateForm = (): string | null => {
       return error
     }
   }
-  return null
+  return validateOrderItemDuplicates(items.value)
 }
 
 /**
@@ -150,6 +156,9 @@ const validateItem = (item: OutboundFormItem, index: number): string | null => {
   const rowName = `第 ${index + 1} 行`
   if (!item.productId) {
     return `${rowName}请选择商品`
+  }
+  if (!item.warehouseId) {
+    return `${rowName}请选择出库仓库`
   }
   if (!item.locationCode) {
     return `${rowName}请选择出库库位`
@@ -235,7 +244,7 @@ onMounted(async () => {
 
     <el-table :data="items" border class="item-table">
       <el-table-column label="商品" min-width="220">
-        <template #default="{ row }">
+        <template #default="{ row, $index }">
           <el-select
             v-model="row.productId"
             filterable
@@ -252,13 +261,14 @@ onMounted(async () => {
               :key="product.id"
               :label="`${product.name}（${product.sku}）`"
               :value="product.id"
+              :disabled="isProductOptionDisabled(items, row, $index, product.id)"
             />
           </el-select>
         </template>
       </el-table-column>
 
       <el-table-column label="出库仓库" min-width="180">
-        <template #default="{ row }">
+        <template #default="{ row, $index }">
           <el-select
             v-model="row.warehouseId"
             clearable
@@ -273,13 +283,14 @@ onMounted(async () => {
               :key="warehouse.id"
               :label="`${warehouse.name}（${warehouse.code}）`"
               :value="warehouse.id"
+              :disabled="isWarehouseOptionDisabled(items, row, $index, warehouse.id)"
             />
           </el-select>
         </template>
       </el-table-column>
 
       <el-table-column label="出库库位" min-width="180">
-        <template #default="{ row }">
+        <template #default="{ row, $index }">
           <el-select
             v-model="row.locationCode"
             clearable
@@ -294,6 +305,7 @@ onMounted(async () => {
               :key="location.id"
               :label="location.code"
               :value="location.code"
+              :disabled="isLocationOptionDisabled(items, row, $index, location.code)"
             />
           </el-select>
         </template>
