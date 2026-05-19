@@ -1,6 +1,7 @@
 package com.wms.service;
 
 import com.wms.common.BusinessException;
+import com.wms.common.PageResult;
 import com.wms.dto.ProductCreateRequest;
 import com.wms.dto.ProductResponse;
 import com.wms.dto.ProductUpdateRequest;
@@ -8,6 +9,9 @@ import com.wms.entity.Product;
 import com.wms.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +29,18 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public List<ProductResponse> list(String keyword) {
-        List<Product> products = productRepository.search(keyword);
-        return products.stream()
+    /**
+     * 分页查询商品列表
+     */
+    public PageResult<ProductResponse> list(String keyword, int page, int pageSize) {
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.min(Math.max(pageSize, 1), 100);
+        Pageable pageable = PageRequest.of(safePage - 1, safePageSize);
+        Page<Product> productPage = productRepository.search(keyword, pageable);
+        List<ProductResponse> list = productPage.getContent().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        return new PageResult<>(list, productPage.getTotalElements(), safePage, safePageSize);
     }
 
     public ProductResponse getById(Long id) {

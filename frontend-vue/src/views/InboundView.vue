@@ -52,10 +52,10 @@ const loadInitialData = async () => {
   warehouseLoading.value = true
   try {
     const [productRes, warehouseRes] = await Promise.all([
-      getProducts(),
+      getProducts({ pageSize: 100 }),
       getWarehouses(),
     ])
-    products.value = productRes.data
+    products.value = productRes.data.list
     warehouses.value = warehouseRes.data
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, '初始化数据加载失败'))
@@ -71,8 +71,11 @@ const loadInitialData = async () => {
 const searchProducts = async (keyword: string) => {
   productLoading.value = true
   try {
-    const res = await getProducts(keyword || undefined)
-    products.value = res.data
+    const res = await getProducts({
+      keyword: keyword || undefined,
+      pageSize: 100,
+    })
+    products.value = res.data.list
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, '商品搜索失败'))
   } finally {
