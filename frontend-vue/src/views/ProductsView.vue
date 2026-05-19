@@ -104,8 +104,10 @@ const handleDelete = async (id: number) => {
     const maxPage = Math.max(1, Math.ceil((total.value - 1) / pageSize.value))
     const nextPage = Math.min(currentPage.value, maxPage)
     await loadProducts(nextPage)
-  } catch {
-    // 用户取消
+  } catch (e: any) {
+    if (e !== 'cancel' && e !== 'close') {
+      ElMessage.error(e?.response?.data?.message || '删除失败')
+    }
   }
 }
 </script>

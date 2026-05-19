@@ -16,4 +16,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long>, Inv
      * 根据商品和库位查询库存
      */
     Optional<Inventory> findByProductIdAndLocationCode(Long productId, String locationCode);
+
+    boolean existsByProductId(Long productId);
 }
