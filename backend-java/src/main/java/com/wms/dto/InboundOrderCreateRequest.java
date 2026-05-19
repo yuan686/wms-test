@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 入库单创建请求 — 候选人需要实现对应的 Controller 和 Service
+ * 入库单创建请求
  */
 @Data
 public class InboundOrderCreateRequest {
@@ -21,16 +21,20 @@ public class InboundOrderCreateRequest {
     @NotEmpty(message = "入库明细不能为空")
     @Valid
     private List<InboundItemRequest> items;
-}
 
-@Data
-class InboundItemRequest {
-    @NotNull(message = "商品ID不能为空")
-    private Long productId;
+    /**
+     * 入库单明细请求
+     */
+    @Data
+    public static class InboundItemRequest {
+        @NotNull(message = "商品ID不能为空")
+        private Long productId;
 
-    @Min(value = 1, message = "数量必须大于0")
-    private Integer quantity;
+        @NotNull(message = "数量不能为空")
+        @Min(value = 1, message = "数量必须大于0")
+        private Integer quantity;
 
-    @NotBlank(message = "库位编码不能为空")
-    private String locationCode;
+        @NotBlank(message = "库位编码不能为空")
+        private String locationCode;
+    }
 }

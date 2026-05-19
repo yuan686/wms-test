@@ -81,8 +81,22 @@ export interface InboundItemRequest {
   locationCode: string
 }
 
+export interface InboundOrderResponse {
+  id: number
+  orderNo: string
+  supplierName: string
+  status: string
+  items: Array<{
+    productId: number
+    productName: string
+    quantity: number
+    locationCode: string
+  }>
+  createdAt: string
+}
+
 export const createInboundOrder = (data: {
   supplierName: string
   items: InboundItemRequest[]
 }) =>
-  api.post('/inbound-orders', data)
+  api.post<any, { code: number; message: string; data: InboundOrderResponse }>('/inbound-orders', data)
