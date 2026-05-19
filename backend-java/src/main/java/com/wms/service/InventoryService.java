@@ -1,7 +1,7 @@
 package com.wms.service;
 
 import com.wms.common.BusinessException;
-import com.wms.common.PageResult;
+import com.wms.common.CursorPageResult;
 import com.wms.dto.InboundOrderCreateRequest;
 import com.wms.dto.InboundOrderResponse;
 import com.wms.dto.InventoryResponse;
@@ -54,13 +54,26 @@ public class InventoryService {
     }
 
     /**
-     * 分页查询库存
+     * 混合分页查询库存：有 cursor 时走游标，否则按 page 偏移跳转
      */
-    public PageResult<InventoryResponse> queryInventory(String keyword, Long warehouseId,
-                                                        String locationCode, int page, int pageSize) {
+    public CursorPageResult<InventoryResponse> queryInventory(String keyword, Long warehouseId,
+                                                              String locationCode, Long cursor,
+                                                              int page, int pageSize) {
         int safePage = Math.max(page, 1);
         int safePageSize = Math.min(Math.max(pageSize, 1), 100);
-        return inventoryRepository.queryInventory(keyword, warehouseId, locationCode, safePage, safePageSize);
+        Long safeCursor = normalizeCursor(cursor);
+        return inventoryRepository.queryInventory(
+                keyword, warehouseId, locationCode, safeCursor, safePage, safePageSize);
+    }
+
+    /**
+     * 校验游标合法性
+     */
+    private Long normalizeCursor(Long cursor) {
+        if (cursor == null || cursor < 0) {
+            return null;
+        }
+        return cursor;
     }
 
     /**

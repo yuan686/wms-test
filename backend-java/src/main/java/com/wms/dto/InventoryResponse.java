@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryResponse {
+    /** 库存记录主键，用作游标分页定位 */
+    private Long id;
     private Long productId;
     private String productName;
     private String sku;

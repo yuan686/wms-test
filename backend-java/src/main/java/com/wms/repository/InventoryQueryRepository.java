@@ -1,6 +1,6 @@
 package com.wms.repository;
 
-import com.wms.common.PageResult;
+import com.wms.common.CursorPageResult;
 import com.wms.dto.InventoryResponse;
 
 /**
@@ -9,8 +9,9 @@ import com.wms.dto.InventoryResponse;
 public interface InventoryQueryRepository {
 
     /**
-     * 分页查询库存列表
+     * 分页查询库存：有 cursor 时走主键游标，否则按 page 偏移（支持页码跳转）
      */
-    PageResult<InventoryResponse> queryInventory(String keyword, Long warehouseId,
-                                                 String locationCode, int page, int pageSize);
+    CursorPageResult<InventoryResponse> queryInventory(String keyword, Long warehouseId,
+                                                       String locationCode, Long cursor,
+                                                       int page, int pageSize);
 }

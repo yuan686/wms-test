@@ -52,6 +52,7 @@ export const getLocations = (warehouseId: number) =>
 // ============ 库存查询（候选人实现） ============
 
 export interface InventoryItem {
+  id: number
   productId: number
   productName: string
   sku: string
@@ -61,17 +62,26 @@ export interface InventoryItem {
   updatedAt: string
 }
 
+export interface InventoryPageData {
+  list: InventoryItem[]
+  total: number | null
+  page: number
+  pageSize: number
+  nextCursor: number | null
+  hasMore: boolean
+}
+
 export const getInventory = (params: {
   keyword?: string
   warehouseId?: number
   locationCode?: string
+  /** 已缓存的游标，顺序翻页时优先使用 */
+  cursor?: number
+  /** 页码跳转（无游标时走偏移分页） */
   page?: number
   pageSize?: number
 }) =>
-  api.get<any, { code: number; data: { list: InventoryItem[]; total: number; page: number; pageSize: number } }>(
-    '/inventory',
-    { params }
-  )
+  api.get<any, { code: number; data: InventoryPageData }>('/inventory', { params })
 
 
 // ============ 入库单（候选人实现） ============

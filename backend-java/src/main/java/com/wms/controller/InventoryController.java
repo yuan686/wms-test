@@ -1,7 +1,7 @@
 package com.wms.controller;
 
 import com.wms.common.ApiResponse;
-import com.wms.common.PageResult;
+import com.wms.common.CursorPageResult;
 import com.wms.dto.InboundOrderCreateRequest;
 import com.wms.dto.InboundOrderResponse;
 import com.wms.dto.InventoryResponse;
@@ -39,15 +39,17 @@ public class InventoryController {
     }
 
     /**
-     * 分页查询库存
+     * 混合分页查询库存：cursor 优先（顺序翻页），否则用 page 跳转
      */
     @GetMapping("/inventory")
-    public ApiResponse<PageResult<InventoryResponse>> queryInventory(
+    public ApiResponse<CursorPageResult<InventoryResponse>> queryInventory(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) String locationCode,
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        return ApiResponse.success(inventoryService.queryInventory(keyword, warehouseId, locationCode, page, pageSize));
+        return ApiResponse.success(
+                inventoryService.queryInventory(keyword, warehouseId, locationCode, cursor, page, pageSize));
     }
 }

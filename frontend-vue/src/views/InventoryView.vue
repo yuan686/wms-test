@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * 库存查询页面
+ * 库存查询页面（游标 + 页码跳转混合分页）
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
@@ -16,6 +16,11 @@ const inventoryList = ref<InventoryItem[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
+/**
+ * 页码游标缓存：pageCursors[n] 为第 n+1 页的起始游标（inventory.id）
+ * 顺序翻页命中缓存走游标；任意跳页走 page 偏移
+ */
+const pageCursors = ref<(number | undefined)[]>([undefined])
 let searchTimer: number | undefined
 
 /**
@@ -34,16 +39,19 @@ const loadWarehouses = async () => {
 }
 
 /**
- * 加载库存分页数据
+ * 加载指定页库存
  */
-const loadInventory = async () => {
+const loadInventory = async (targetPage = page.value) => {
   loading.value = true
   try {
-    const res = await getInventory(buildQueryParams())
+    const res = await getInventory(buildQueryParams(targetPage))
     inventoryList.value = res.data.list
-    total.value = res.data.total
     page.value = res.data.page
     pageSize.value = res.data.pageSize
+    if (res.data.total != null) {
+      total.value = res.data.total
+    }
+    cachePageCursor(targetPage, res.data.nextCursor)
   } catch (e: any) {
     ElMessage.error(getErrorMessage(e, '库存加载失败'))
   } finally {
@@ -52,15 +60,39 @@ const loadInventory = async () => {
 }
 
 /**
- * 组装库存查询参数
+ * 缓存当前页对应的下一页游标
  */
-const buildQueryParams = () => ({
-  keyword: keyword.value.trim() || undefined,
-  warehouseId: warehouseId.value,
-  locationCode: locationCode.value.trim() || undefined,
-  page: page.value,
-  pageSize: pageSize.value,
-})
+const cachePageCursor = (currentPage: number, nextCursor: number | null) => {
+  if (nextCursor != null) {
+    pageCursors.value[currentPage] = nextCursor
+  }
+}
+
+/**
+ * 组装查询参数：有游标用游标，否则用页码偏移（支持跳转）
+ */
+const buildQueryParams = (targetPage: number) => {
+  const base = {
+    keyword: keyword.value.trim() || undefined,
+    warehouseId: warehouseId.value,
+    locationCode: locationCode.value.trim() || undefined,
+    page: targetPage,
+    pageSize: pageSize.value,
+  }
+  const cursor = targetPage > 1 ? pageCursors.value[targetPage - 1] : undefined
+  if (cursor != null) {
+    return { ...base, cursor }
+  }
+  return base
+}
+
+/**
+ * 重置分页状态
+ */
+const resetPagination = () => {
+  page.value = 1
+  pageCursors.value = [undefined]
+}
 
 /**
  * 防抖触发库存搜索
@@ -78,8 +110,8 @@ const debounceSearch = () => {
  * 执行搜索并回到第一页
  */
 const handleSearch = async () => {
-  page.value = 1
-  await loadInventory()
+  resetPagination()
+  await loadInventory(1)
 }
 
 /**
@@ -89,25 +121,15 @@ const resetFilters = async () => {
   keyword.value = ''
   locationCode.value = ''
   warehouseId.value = undefined
-  page.value = 1
-  await loadInventory()
+  resetPagination()
+  await loadInventory(1)
 }
 
 /**
- * 分页页码变化时加载数据
+ * 页码变化（支持跳页）
  */
 const handlePageChange = async (nextPage: number) => {
-  page.value = nextPage
-  await loadInventory()
-}
-
-/**
- * 分页大小变化时加载数据
- */
-const handlePageSizeChange = async (nextPageSize: number) => {
-  pageSize.value = nextPageSize
-  page.value = 1
-  await loadInventory()
+  await loadInventory(nextPage)
 }
 
 /**
@@ -126,7 +148,7 @@ const getErrorMessage = (error: any, fallback: string) => {
 
 onMounted(async () => {
   await loadWarehouses()
-  await loadInventory()
+  await loadInventory(1)
 })
 
 onBeforeUnmount(() => {
@@ -195,15 +217,15 @@ onBeforeUnmount(() => {
       <el-table-column prop="updatedAt" label="最后更新时间" width="190" />
     </el-table>
 
-    <div class="pagination-bar">
+    <!-- 分页（样式与商品页保持一致） -->
+    <div style="margin-top: 16px; text-align: right">
       <el-pagination
         v-model:current-page="page"
-        v-model:page-size="pageSize"
+        :page-size="pageSize"
         :total="total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next"
+        layout="total, prev, pager, next"
+        :disabled="loading"
         @current-change="handlePageChange"
-        @size-change="handlePageSizeChange"
       />
     </div>
 
@@ -233,11 +255,6 @@ onBeforeUnmount(() => {
 .warehouse-select,
 .location-input {
   width: 220px;
-}
-
-.pagination-bar {
-  margin-top: 16px;
-  text-align: right;
 }
 
 :deep(.low-stock-row) {

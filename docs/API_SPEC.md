@@ -136,7 +136,7 @@ GET /api/inbound-orders/{id}
 ## 4. 库存查询（待实现 — 任务 2）
 
 ```
-GET /api/inventory?keyword=&warehouseId=&page=1&pageSize=20
+GET /api/inventory?keyword=&warehouseId=&page=1&cursor=&pageSize=20
 ```
 
 **查询参数：**
@@ -145,7 +145,9 @@ GET /api/inventory?keyword=&warehouseId=&page=1&pageSize=20
 |------|------|------|------|
 | keyword | string | 否 | 商品名称或 SKU 模糊搜索 |
 | warehouseId | int | 否 | 仓库 ID 筛选 |
-| page | int | 否 | 页码，默认 1 |
+| locationCode | string | 否 | 库位编码前缀筛选 |
+| page | int | 否 | 页码，默认 1；**无 cursor 时**走偏移分页，支持任意跳页 |
+| cursor | long | 否 | 游标（inventory.id），**优先于 page**；顺序翻页时由前端缓存传入 |
 | pageSize | int | 否 | 每页条数，默认 20，最大 100 |
 
 **Response:**
@@ -157,6 +159,7 @@ GET /api/inventory?keyword=&warehouseId=&page=1&pageSize=20
   "data": {
     "list": [
       {
+        "id": 12,
         "productId": 1,
         "productName": "蓝牙耳机",
         "sku": "SKU-001",
@@ -168,10 +171,14 @@ GET /api/inventory?keyword=&warehouseId=&page=1&pageSize=20
     ],
     "total": 50,
     "page": 1,
-    "pageSize": 20
+    "pageSize": 20,
+    "nextCursor": 12,
+    "hasMore": true
   }
 }
 ```
+
+> **混合分页**：传 `cursor` 时用主键游标（`WHERE id > cursor`），适合顺序下一页；仅传 `page` 时用 `OFFSET` 支持页码跳转。`total` 仅在 `page=1` 时返回。
 
 ---
 
